@@ -1,7 +1,7 @@
 # Script to run through the files and fit the zero-inflated negative binomial distrubution
 
 using Plots, Distributions, DelimitedFiles, Base.Printf
-import SignalUtils, TxModels, StatsUtils, PltUtils
+import Utils
 gr()
 
 # Set some parameters
@@ -18,17 +18,17 @@ for (ii,file) in enumerate(Files)
     chain = readdlm(folder*file)
     
 	# Extract parameters and plot
-    r = TxModels.find_MAP(chain,idx=1)
-    p = TxModels.find_MAP(chain,idx=2)
-    w = TxModels.find_MAP(chain,idx=3)
-    K = TxModels.find_MAP(chain,idx=4)
-    int_r = TxModels.credibleintervals(chain,idx=1, spread=spread)
-    int_p = TxModels.credibleintervals(chain,idx=2, spread=spread)
-    int_w = TxModels.credibleintervals(chain,idx=3, spread=spread)
-    int_K = TxModels.credibleintervals(chain,idx=4, spread=spread)
+    r = Utils.find_MAP(chain,idx=1)
+    p = Utils.find_MAP(chain,idx=2)
+    w = Utils.find_MAP(chain,idx=3)
+    K = Utils.find_MAP(chain,idx=4)
+    int_r = Utils.credibleintervals(chain,idx=1, spread=spread)
+    int_p = Utils.credibleintervals(chain,idx=2, spread=spread)
+    int_w = Utils.credibleintervals(chain,idx=3, spread=spread)
+    int_K = Utils.credibleintervals(chain,idx=4, spread=spread)
 
     # Plot and save
-    plt = TxModels.plot_chain(chain, [r,p,w,K], [int_r,int_p,int_w,int_K])
+    plt = Utils.plot_chain(chain, [r,p,w,K], [int_r,int_p,int_w,int_K])
     Plots.pdf("MCMC/"*file)
 
     # Save data
