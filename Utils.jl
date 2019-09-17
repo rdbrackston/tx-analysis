@@ -1,6 +1,6 @@
 module Utils
 
-using Distributions Discretizers, Dierckx
+using Distributions Discretizers, Dierckx, Optim, CSV
 import Printf
 import KernelDensity; const KDE = KernelDensity
 
@@ -104,18 +104,11 @@ function find_MAP(chain; idx=1)
     # Perform the KDE
     kdeObj = kde_wrpr(data)
 
-    # Find MAP via optimisation
+    # Find MAP via crude optimisation
     func = x->KDE.pdf(kdeObj,x[1])
-    # s = std(data)
-    # m = mean(data)
-    # res = optimize(func, [m-s], [m+s], [m])
-    # MAP = Optim.minimizer(res)
-
     x = collect(range(min(data...),stop=max(data...),length=10000))
     y = map(func,x)
     MAP = x[y.==maximum(y)][1]
-
-    # Check for multi-modality, warning if true
 
     return MAP
 
@@ -299,7 +292,7 @@ end
 
 
 """
-Function to remove the spurious zeros that arise.
+Function to remove the spurious zeros that can arise during MCMC.
 """
 function rmv_zeros(chain)
 
@@ -325,6 +318,7 @@ end
 
 
 """
+Return log-likelihood of getting data X from zero-inflated negative binomial with prms
 """
 function log_likelihood_zi_negbinom(X, prms, verbose=false)
 
@@ -334,20 +328,6 @@ function log_likelihood_zi_negbinom(X, prms, verbose=false)
 
     m = MixtureModel([DiscreteUniform(0,0), NegativeBinomial(prms[1:2]...)], [prms[3],1-prms[3]])
     sum(log.([pdf(m,X[ii]) for ii=1:length(X)]))
-    # reomove fraction w of zeros from X
-    # Find mle_negbinom on remainder
-    # Compute log likelihood of mixture model
-end
-function mle_zi_negbinom(X)
-
-    # Preliminary fit of negative binomial
-    d = mle_negbinom(X)
-    # Lambda function definition
-    func = p->log_likelihood_zi_negbinom(X, p)
-    res = optimize(func, [0.01,0.01,0.01], [Inf,0.99,0.99], [params(d)[1],params(d)[2],0.5])
-
-    return MixtureModel([DiscreteUniform(0,0), NegativeBinomial(prms[1:2]...)], [prms[3],1-prms[3]])
-
 end
 
 
