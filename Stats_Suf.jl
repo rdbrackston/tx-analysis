@@ -7,9 +7,9 @@ gr()
 # Set some parameters
 spread = 0.95
 folder = "Chains/"
-
 Files = readdir(folder)
-# filter!(f->!occursin("Fur_H2O2",f), Files)
+
+# Make a stats variable to be writtten to a file
 Stats = Array{Any,2}(undef,length(Files)+1,13)
 Stats[1,:] = ["Name" "p" "w" "r" "K" "r_min" "r_max" "p_min" "p_max" "w_min" "w_max" "K_min" "K_max"]
 

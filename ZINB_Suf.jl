@@ -1,7 +1,7 @@
 # Script to run through the files and fit the zero-inflated negative binomial distrubution
 
 using Plots, Distributions, DelimitedFiles, Base.Printf
-import SUtils
+import Utils
 gr()
 
 # Set some parameters
@@ -28,7 +28,7 @@ for (ii,file) in enumerate(Files)
         lFunc = p->Utils.log_likelihood_zi_negbinom(data, p)
         guess = [1.0,0.5,0.5]
 
-        # Run the MCMC, then remove spurious zeros from the chain
+        # Run the MCMC
         priors = [Truncated(Normal(0,20),0,Inf), Uniform(0.0,1.0),Uniform(0.0,1.0)]
         if !isequal(restart,:none)
             @assert isequal(restart,name) "Loaded chain and current file must be the same."
