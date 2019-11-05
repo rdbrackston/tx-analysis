@@ -331,4 +331,26 @@ function log_likelihood_zi_negbinom(X, prms, verbose=false)
 end
 
 
+"""
+Obtain confidence intervals for the statistic specified in statFunc using bootstrapping
+"""
+function bootstrap_intervals(data, statFunc::Function, N=5000)
+
+	statistic = statFunc(data)
+	nSamp = length(data)
+
+	statVals = Array{Float64}(undef, N)
+	for ii=1:N
+		# Resample from data with replacement
+		idxs = Int.(round.(rand(nSamp).*nSamp .+0.5))
+		samps = data[idxs]
+		statVals[ii] = statFunc(samps)
+	end
+
+	ints = std(statVals)
+	return statistic-ints,statistic,statistic+ints
+
+end
+
+
 end # module
