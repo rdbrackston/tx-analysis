@@ -1,0 +1,8 @@
+[deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+Discretizers = "6e83dbb3-75ca-525b-8ae2-3751f0dd50b4"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+KernelDensity = "5ab0869b-81aa-558d-bb23-cbf5423bbe9b"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
