@@ -1,14 +1,15 @@
 # Script to run through the files and fit the zero-inflated negative binomial distrubution
 
-using Plots, Distributions, DelimitedFiles, Base.Printf
-import Utils
+using Plots, Distributions, DelimitedFiles, Base.Printf, Base.Filesystem
+include("Utils.jl")
+import Main.Utils
 gr()
 
 # Set some MCMC parameters
-Lchain = 400000
-burn = 100000
-thin = 100
-folder = "/Users/rowanbrackston/Box Sync/06-Projects/07-PspNoise/01-Psp_Data/"
+Lchain = 4000
+burn = 100
+thin = 10
+folder = "./"
 # restart = "OxyR"
 
 Files = readdir(folder)
@@ -18,6 +19,7 @@ for (ii,file) in enumerate(Files)
     if occursin(".csv",file)
 
         name = replace(file, ".csv"=>"")
+		println("Running MCMC for "*name)
 
     	# Load and plot the distribution data
         data = Utils.load_data(file,folder, 151)
@@ -28,14 +30,14 @@ for (ii,file) in enumerate(Files)
         guess = [1.0,0.5,0.5]
 
         # Run the MCMC
-        priors = [Truncated(Normal(0,20),0,Inf), Uniform(0.0,1.0),Uniform(0.0,1.0)]
+        priors = [truncated(Normal(0,20),0,Inf), Uniform(0.0,1.0),Uniform(0.0,1.0)]
 		chain = Utils.mcmc_metropolis(guess, lFunc, Lchain; prior=priors, propStd=0.03,scaleProp=false, burn=burn,step=thin);
 		chain_red = Utils.rmv_zeros(chain)
 
         # Chain for K/ν
         tmp = (1.0.-chain_red[:,2])./chain_red[:,2]
         chain_red = [chain_red tmp]
-        
+
 		# Extract parameters and plot
         r = Utils.find_MAP(chain_red,idx=1)
         p = Utils.find_MAP(chain_red,idx=2)
@@ -51,8 +53,17 @@ for (ii,file) in enumerate(Files)
         plot!(plt[2], 0:maximum(x),n->cdf(m,n))
 
         # Save data
-        println(name)
-        writedlm("Chains/"*name,chain_red)
-        Plots.pdf("Distributions/"*name)
+		try
+        	writedlm("Chains/"*name,chain_red)
+		catch
+			mkdir("Chains")
+			writedlm("Chains/"*name,chain_red)
+		end
+		try
+        	Plots.pdf("Distributions/"*name)
+		catch
+			mkdir("Distributions")
+	        Plots.pdf("Distributions/"*name)
+		end
     end
 end

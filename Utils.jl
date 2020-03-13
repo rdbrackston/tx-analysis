@@ -1,6 +1,6 @@
 module Utils
 
-using Distributions Discretizers, Dierckx, Optim, CSV
+using Distributions, Discretizers, Optim, CSV, Plots
 import Printf
 import KernelDensity; const KDE = KernelDensity
 
@@ -12,7 +12,7 @@ function mcmc_metropolis(x0::AbstractArray, logPfunc::Function, Lchain::Integer;
                          propStd::Union{AbstractFloat,AbstractArray}=0.1,
                          step::Integer=500, burn::Integer=500, printFreq::Integer=10000,
                          prior=:none, verbose::Bool=true, scaleProp::Bool=true)
-    
+
 	if length(size(x0)) > 1 # restart from old chain
         if verbose; println("Restarting from old chain"); end
 		xOld = x0[end,:]
@@ -24,7 +24,7 @@ function mcmc_metropolis(x0::AbstractArray, logPfunc::Function, Lchain::Integer;
     chain = zeros(Float64, Lchain,n)
     chain[1,:] = xOld
     acc = 0
-    
+
     if prior == :none
     	logpOld = logPfunc(xOld)
     else
@@ -33,7 +33,7 @@ function mcmc_metropolis(x0::AbstractArray, logPfunc::Function, Lchain::Integer;
         	logpOld += log(Distributions.pdf(prr,xOld[ip]))
         end
     end
-    
+
     for ii=2:Lchain
         if scaleProp
             proposal = MvNormal(propStd.*xOld)
@@ -67,14 +67,14 @@ function mcmc_metropolis(x0::AbstractArray, logPfunc::Function, Lchain::Integer;
             acc += 1
         end
         chain[ii,:] = xOld
-        
+
         if ii % printFreq == 0
             if verbose
                 Printf.@printf("Completed iteration %i out of %i. \n", ii,Lchain)
             end
         end
     end
-    
+
     if verbose
         Printf.@printf("Acceptance ratio of %.2f (%i out of %i).\n", acc/Lchain,acc,Lchain)
     end
@@ -85,7 +85,7 @@ function mcmc_metropolis(x0::AbstractArray, logPfunc::Function, Lchain::Integer;
 		chainRed = chain[burn:step:end,:]
 	end
 	return chainRed
-    
+
 end
 
 
@@ -248,16 +248,11 @@ applying upper cut-off in terms of standard deviations from the mean.
 function load_data(File::String, Folder::String, cutOff::Number=Inf, format=:Int)
 
     if occursin(".csv",File)
-        rnaData = CSV.read(Folder*File, datarow=1)[1]
+        rnaData = CSV.read(Folder*File, datarow=1)[:,1]
     else
-	    rnaData = CSV.read(Folder*File*".csv", datarow=1)[1]
+	    rnaData = CSV.read(Folder*File*".csv", datarow=1)[:,1]
     end
 
-    try
-	    rnaData = collect(Missings.replace(rnaData, NaN))
-    catch
-        rnaData = collect(Missings.replace(rnaData, 0))
-    end
 	filter!(x -> !isnan(x), rnaData)
 
     fltData = filter(x->x<cutOff, rnaData)
@@ -276,7 +271,6 @@ end
 """
 function genpdf(data::Array{Int64,1}, nbin=:auto::Union{Int,Symbol})
 
-    println("Implementing integer version of genpdf.")
     # Set bins to all the integers between lo and hi
     lo, hi = extrema(data)
     edges = collect(lo-1:hi) .+ 0.5
@@ -313,7 +307,7 @@ function rmv_zeros(chain)
         end
     end
     return chain_red
-    
+
 end
 
 
@@ -334,7 +328,7 @@ end
 """
 Obtain confidence intervals for the statistic specified in statFunc using bootstrapping
 """
-function bootstrap_intervals(data, statFunc::Function, N=5000)
+function bootstrap_intervals(data, statFunc::Function, N=10000)
 
 	statistic = statFunc(data)
 	nSamp = length(data)
@@ -351,6 +345,5 @@ function bootstrap_intervals(data, statFunc::Function, N=5000)
 	return statistic-ints,statistic,statistic+ints
 
 end
-
 
 end # module

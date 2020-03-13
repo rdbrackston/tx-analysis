@@ -1,7 +1,8 @@
 # Script to run through the files and fit the zero-inflated negative binomial distrubution
 
 using Plots, Distributions, DelimitedFiles, Base.Printf
-import Utils
+include("Utils.jl")
+import Main.Utils
 gr()
 
 # Set some parameters
@@ -17,7 +18,7 @@ for (ii,file) in enumerate(Files)
 
     # Load and plot the distribution data
     chain = readdlm(folder*file)
-    
+
 	# Extract parameters and plot
     r = Utils.find_MAP(chain,idx=1)
     p = Utils.find_MAP(chain,idx=2)
@@ -30,7 +31,12 @@ for (ii,file) in enumerate(Files)
 
     # Plot and save
     plt = Utils.plot_chain(chain, [r,p,w,K], [int_r,int_p,int_w,int_K])
-    Plots.pdf("MCMC/"*file)
+    try
+        Plots.pdf("MCMC/"*file)
+    catch
+        mkdir("MCMC")
+        Plots.pdf("MCMC/"*file)
+    end
 
     # Save data
     println(file)
